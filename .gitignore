@@ -1,2 +1,8 @@
+# build files
+build
+
+# executables
+*.exe
+
+# vscode specific files
 .vscode
-.exe
