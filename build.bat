@@ -3,6 +3,5 @@
 @cd build
 cmake -G "MinGW Makefiles" ..
 make 
-@move open-world.exe ..
 @cd ..
 open-world.exe

@@ -4,16 +4,18 @@ project(open-world)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 # Define source, include, and library directories
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
-# Find all .cpp files in src and include glad.c
-file(GLOB SRCS "${SRC_DIR}/*.cpp" "${SRC_DIR}/glad.c")
+# Find all .cpp files in src, including subdirectories
+file(GLOB_RECURSE SRCS "${SRC_DIR}/*.cpp" "${SRC_DIR}/glad.c")
 
-# Include directories
-include_directories(${INCLUDE_DIR})
+# Include all subdirectories in src for header files
+include_directories(${INCLUDE_DIR} ${SRC_DIR})
 
 # Link directories
 link_directories(${LIB_DIR})

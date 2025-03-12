@@ -3,6 +3,7 @@ build
 
 # executables
 *.exe
+open-world
 
 # vscode specific files
 .vscode
