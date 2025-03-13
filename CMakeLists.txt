@@ -12,7 +12,7 @@ set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
 # Find all .cpp files in src, including subdirectories
-file(GLOB_RECURSE SRCS "${SRC_DIR}/*.cpp" "${SRC_DIR}/glad.c")
+file(GLOB_RECURSE SRCS "${SRC_DIR}/*.cpp" "${SRC_DIR}/dependencies/glad.c")
 
 # Include all subdirectories in src for header files
 include_directories(${INCLUDE_DIR} ${SRC_DIR})

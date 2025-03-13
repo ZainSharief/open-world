@@ -5,5 +5,8 @@ build
 *.exe
 open-world
 
+# MacOS binary files
+.DS_Store
+
 # vscode specific files
 .vscode
