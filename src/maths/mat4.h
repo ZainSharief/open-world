@@ -5,7 +5,7 @@
 #include "vec4.h"
 #include "vec3.h"
 
-#define PI 3.14159265359f
+constexpr float PI = 3.14159265359f;
 
 struct mat4 {
     float m[16];
@@ -35,11 +35,12 @@ struct mat4 {
     }
 
     static mat4 rotate(float angle, const vec3& axis) {
+        vec3 axisNorm = axis.normalize();
         float r = angle * (PI / 180.0f);
         float s = sin(r);
         float c = cos(r);
         
-        float x = axis.x, y = axis.y, z = axis.z;
+        float x = axisNorm.x, y = axisNorm.y, z = axisNorm.z;
 
         mat4 result = identity();
         result.m[0] = x * x * (1 - c) + c;
@@ -54,6 +55,20 @@ struct mat4 {
         result.m[9] = y * z * (1 - c) - x * s;
         result.m[10] = z * z * (1 - c) + c;
 
+        return result;
+    }
+
+    static mat4 projection(float fov, float aspect, float znear, float zfar)
+    {
+        float r = (fov / 2) * (PI / 180.0f);
+        float t = tan(r);
+
+        mat4 result;
+        result.m[0] = 1 / (aspect * t);
+        result.m[5] = 1 / t;
+        result.m[10] = -(zfar + znear) / (zfar - znear);
+        result.m[11] = -1.0f;
+        result.m[14] = -(2.0f * zfar * znear) / (zfar - znear);
         return result;
     }
     
@@ -114,6 +129,16 @@ struct mat4 {
             result.m[i] = m[i] / other;
         }
         return result;
+    }
+
+    void print()
+    {
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 4; col++) {
+                std::cout << m[col * 4 + row] << " ";
+            }
+            std::cout << "" << std::endl;
+        }
     }
 };
 
