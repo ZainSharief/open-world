@@ -4,6 +4,7 @@
 
 #include "shaders/shader.h"
 #include "dependencies/stb_image.h"
+#include "maths/maths.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -128,7 +129,7 @@ int main() {
     stbi_image_free(data1);
 
     glClearColor(0.38, 0.58, 0.98, 1.0);
-    
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -138,6 +139,13 @@ int main() {
         shader.use();
         shader.setInt("texture1", 0);
         shader.setInt("texture2", 1);
+        
+        mat4 translate = mat4::translate(vec3(0.5f, -0.5f, 0.0f));
+        mat4 rotate = mat4::rotate((float)(glfwGetTime()*50.0f), vec3(0.0, 0.0, 1.0));
+        mat4 transform = translate * rotate;
+
+        unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.m);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);

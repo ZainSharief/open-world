@@ -1,0 +1,120 @@
+#ifndef MAT4_H
+#define MAT4_H
+
+#include <cmath>
+#include "vec4.h"
+#include "vec3.h"
+
+#define PI 3.14159265359f
+
+struct mat4 {
+    float m[16];
+
+    mat4() {
+        for (int i = 0; i < 16; i++) m[i] = 0.0f;
+    }
+
+    explicit mat4(float diagonal) {
+        for (int i = 0; i < 16; i++) m[i] = 0.0f;
+        m[0] = diagonal;
+        m[5] = diagonal;
+        m[10] = diagonal;
+        m[15] = diagonal;
+    }
+
+    static mat4 identity() {
+        return mat4(1.0f);
+    }
+
+    static mat4 translate(const vec3& translation) {
+        mat4 result = identity();
+        result.m[12] = translation.x;
+        result.m[13] = translation.y;
+        result.m[14] = translation.z;
+        return result;
+    }
+
+    static mat4 rotate(float angle, const vec3& axis) {
+        float r = angle * (PI / 180.0f);
+        float s = sin(r);
+        float c = cos(r);
+        
+        float x = axis.x, y = axis.y, z = axis.z;
+
+        mat4 result = identity();
+        result.m[0] = x * x * (1 - c) + c;
+        result.m[1] = y * x * (1 - c) + z * s;
+        result.m[2] = x * z * (1 - c) - y * s;
+
+        result.m[4] = x * y * (1 - c) - z * s;
+        result.m[5] = y * y * (1 - c) + c;
+        result.m[6] = y * z * (1 - c) + x * s;
+
+        result.m[8] = x * z * (1 - c) + y * s;
+        result.m[9] = y * z * (1 - c) - x * s;
+        result.m[10] = z * z * (1 - c) + c;
+
+        return result;
+    }
+    
+    mat4 operator+(const mat4& other) const {
+        mat4 result;
+        for (int i = 0; i < 16; i++) {
+            result.m[i] = m[i] + other.m[i];
+        }
+        return result;
+    }
+
+    mat4 operator-(const mat4& other) const {
+        mat4 result;
+        for (int i = 0; i < 16; i++) {
+            result.m[i] = m[i] - other.m[i];
+        }
+        return result;
+    }
+
+    mat4 operator*(const mat4& other) const {
+        mat4 result;
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 4; col++) {
+                for (int i = 0; i < 4; i++) {
+                    result.m[row + col * 4] += m[row + i * 4] * other.m[i + col * 4];
+                }
+            }
+        }
+        return result;
+    }    
+
+    vec4 operator*(const vec4& v) const {
+        return vec4(
+            m[0] * v.x + m[4] * v.y + m[8] * v.z + m[12] * v.w,
+            m[1] * v.x + m[5] * v.y + m[9] * v.z + m[13] * v.w,
+            m[2] * v.x + m[6] * v.y + m[10] * v.z + m[14] * v.w,
+            m[3] * v.x + m[7] * v.y + m[11] * v.z + m[15] * v.w
+        );
+    }
+    
+    mat4 operator*(const float other) const {
+        mat4 result;
+        for (int i = 0; i < 16; i++) {
+            result.m[i] = m[i] * other;
+        }
+        return result;
+    }
+
+    mat4 operator/(const float other) const {
+        
+        if (other == 0) {
+            std::cerr << "WARNING: DIVISION mat4 BY 0 WITH A float" << std::endl;
+            return mat4();
+        } 
+
+        mat4 result;
+        for (int i = 0; i < 16; i++) {
+            result.m[i] = m[i] / other;
+        }
+        return result;
+    }
+};
+
+#endif
