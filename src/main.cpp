@@ -6,16 +6,8 @@
 #include "dependencies/stb_image.h"
 #include "maths/maths.h"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window, float deltaTime, vec3& cameraPos, vec3& cameraFront, vec3& cameraUp);
 
 int main() {
 
@@ -177,9 +169,21 @@ int main() {
     shader.setInt("texture1", 0);
     shader.setInt("texture2", 1);
 
+    mat4 projection = mat4::projection(45.0f, (float)width / (float)height, 0.1f, 100.0f);
+    int projectionLoc = glGetUniformLocation(shader.ID, "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection.m);
+
+    vec3 cameraPos   = vec3(0.0f, 0.0f,  3.0f);
+    vec3 cameraFront = vec3(0.0f, 0.0f, -1.0f);
+    vec3 cameraUp    = vec3(0.0f, 1.0f,  0.0f);
+
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
+        float currentFrame = glfwGetTime();
+
+        processInput(window, deltaTime, cameraPos, cameraFront, cameraUp);
 
         glClearColor(0.38, 0.58, 0.98, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -191,14 +195,10 @@ int main() {
 
         shader.use();
 
-        mat4 view = mat4::translate(vec3(0.0f, 0.0f, -3.0f));
-        mat4 projection = mat4::projection(45.0f, (float)width/(float)height, 0.1f, 100.0f);        
+        mat4 view = mat4::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         int viewLoc = glGetUniformLocation(shader.ID, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.m);
-
-        int projLoc = glGetUniformLocation(shader.ID, "projection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, projection.m);
 
         glBindVertexArray(VAO); 
         for(unsigned int i = 0; i < 10; i++)
@@ -209,11 +209,15 @@ int main() {
             model = model * mat4::rotate((float)glfwGetTime() * 50.0f, vec3(0.5f, 1.0f, 0.0f)); 
             int modelLoc = glGetUniformLocation(shader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.m);
+            
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame; 
     }
 
     glDeleteVertexArrays(1, &VAO);
@@ -223,4 +227,30 @@ int main() {
 
     glfwTerminate();
     return 0;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow* window, float deltaTime, vec3& cameraPos, vec3& cameraFront, vec3& cameraUp)
+{
+    const float cameraSpeed = 3.0f;
+
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+    
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += (cameraFront * cameraSpeed) * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= (cameraFront * cameraSpeed) * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= ((cameraFront.cross(cameraUp)).normalize() * cameraSpeed) * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += ((cameraFront.cross(cameraUp)).normalize() * cameraSpeed) * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        cameraPos += (cameraUp * cameraSpeed) * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        cameraPos -= (cameraUp * cameraSpeed) * deltaTime;
 }

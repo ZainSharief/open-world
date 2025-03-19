@@ -13,10 +13,22 @@ struct vec3 {
     vec3 operator+(const vec3& other) const {
         return vec3(x + other.x, y + other.y, z + other.z);
     }
+    vec3& operator+=(const vec3& other) {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        return *this;
+    }
 
     // override the - operator
     vec3 operator-(const vec3& other) const {
         return vec3(x - other.x, y - other.y, z - other.z);
+    }
+    vec3& operator-=(const vec3& other) {
+        x -= other.x;
+        y -= other.y;
+        z -= other.z;
+        return *this;
     }
     vec3 operator-() const {
         return vec3(-x, -y, -z);
@@ -60,14 +72,14 @@ struct vec3 {
     }
 
     // Compute a dot product between vectors
-    float dot(vec3& other) {
+    float dot(const vec3& other) {
         return x * other.x + y * other.y + z * other.z;
     }
 
-    float cross(vec3& other) {
-        return (
-            y * other.z - z * other.y + 
-            z * other.x - x * other.z + 
+    vec3 cross(const vec3& other) {
+        return vec3(
+            y * other.z - z * other.y, 
+            z * other.x - x * other.z,
             x * other.y - y * other.x
         );
     }

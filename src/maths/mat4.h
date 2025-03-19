@@ -72,6 +72,32 @@ struct mat4 {
         return result;
     }
     
+    static mat4 lookAt(vec3 position, vec3 target, vec3 up) {
+        vec3 direction = (target - position).normalize();
+        vec3 right = direction.cross(up).normalize();
+        vec3 upOrtho = direction.cross(right);
+        
+        mat4 rotation = identity();
+        rotation.m[0] = right.x;
+        rotation.m[4] = right.y;
+        rotation.m[8] = right.z;
+
+        rotation.m[1] = upOrtho.x;
+        rotation.m[5] = upOrtho.y;
+        rotation.m[9] = upOrtho.z;
+
+        rotation.m[2] = -direction.x;
+        rotation.m[6] = -direction.y;
+        rotation.m[10] = -direction.z;
+
+        mat4 translation = identity();
+        translation.m[12] = -position.x;
+        translation.m[13] = -position.y;
+        translation.m[14] = -position.z;
+
+        return translation * rotation;
+    }
+
     mat4 operator+(const mat4& other) const {
         mat4 result;
         for (int i = 0; i < 16; i++) {
