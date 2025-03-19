@@ -169,9 +169,9 @@ int main() {
     shader.setInt("texture1", 0);
     shader.setInt("texture2", 1);
 
-    mat4 projection = mat4::projection(45.0f, (float)width / (float)height, 0.1f, 100.0f);
+    mat4 projection = mat4::projection(90.0f, (float)width / (float)height, 0.1f, 100.0f);
     int projectionLoc = glGetUniformLocation(shader.ID, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection.m);
+    glUniformMatrix4fv(projectionLoc, 1, GL_TRUE, projection.m);
 
     vec3 cameraPos   = vec3(0.0f, 0.0f,  3.0f);
     vec3 cameraFront = vec3(0.0f, 0.0f, -1.0f);
@@ -196,9 +196,10 @@ int main() {
         shader.use();
 
         mat4 view = mat4::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        vec3 target = (cameraPos + cameraFront);
 
         int viewLoc = glGetUniformLocation(shader.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.m);
+        glUniformMatrix4fv(viewLoc, 1, GL_TRUE, view.m);
 
         glBindVertexArray(VAO); 
         for(unsigned int i = 0; i < 10; i++)
@@ -208,7 +209,7 @@ int main() {
             model = model * mat4::rotate(angle, vec3(1.0f, 0.3f, 0.5f));
             model = model * mat4::rotate((float)glfwGetTime() * 50.0f, vec3(0.5f, 1.0f, 0.0f)); 
             int modelLoc = glGetUniformLocation(shader.ID, "model");
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.m);
+            glUniformMatrix4fv(modelLoc, 1, GL_TRUE, model.m);
             
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
@@ -247,10 +248,32 @@ void processInput(GLFWwindow* window, float deltaTime, vec3& cameraPos, vec3& ca
         cameraPos -= (cameraFront * cameraSpeed) * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraPos -= ((cameraFront.cross(cameraUp)).normalize() * cameraSpeed) * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS    )
         cameraPos += ((cameraFront.cross(cameraUp)).normalize() * cameraSpeed) * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         cameraPos += (cameraUp * cameraSpeed) * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         cameraPos -= (cameraUp * cameraSpeed) * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+    {
+        std::cerr << "camera pos: " << cameraPos.x << " " << cameraPos.y << " " << cameraPos.z << std::endl;
+        std::cerr << "camera front: " << cameraFront.x << " " << cameraFront.y << " " << cameraFront.z << std::endl;
+        std::cerr << "camera up: " << cameraUp.x << " " << cameraUp.y << " " << cameraUp.z << std::endl;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {
+        vec3 up = vec3(0, 1, 0);
+        cameraUp = quaternion::rotateVec3(quaternion(up, 2.0f), cameraUp);
+        cameraFront = quaternion::rotateVec3(quaternion(up, 2.0f), cameraFront);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {
+        vec3 up = vec3(0, 1, 0);
+        cameraUp = quaternion::rotateVec3(quaternion(up, -2.0f), cameraUp);
+        cameraFront = quaternion::rotateVec3(quaternion(up, -2.0f), cameraFront);
+    }
+        
 }
