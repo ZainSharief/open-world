@@ -262,6 +262,20 @@ void processInput(GLFWwindow* window, float deltaTime, vec3& cameraPos, vec3& ca
         std::cerr << "camera up: " << cameraUp.x << " " << cameraUp.y << " " << cameraUp.z << std::endl;
     }
 
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        vec3 right = cameraFront.cross(cameraUp).normalize();
+        cameraUp = quaternion::rotateVec3(quaternion(right, 2.0f), cameraUp);
+        cameraFront = quaternion::rotateVec3(quaternion(right, 2.0f), cameraFront);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        vec3 right = cameraFront.cross(cameraUp).normalize();
+        cameraUp = quaternion::rotateVec3(quaternion(right, -2.0f), cameraUp);
+        cameraFront = quaternion::rotateVec3(quaternion(right, -2.0f), cameraFront);
+    }
+
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
         vec3 up = vec3(0, 1, 0);
