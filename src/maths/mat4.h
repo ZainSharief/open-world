@@ -64,7 +64,7 @@ struct mat4 {
 
     static mat4 projection(float fov, float aspect, float znear, float zfar)
     {
-        float r = (fov / 2) * (PI / 180.0f);
+        float r = radians(fov / 2);
         float t = tan(r);
 
         mat4 result;
