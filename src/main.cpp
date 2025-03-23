@@ -54,7 +54,7 @@ int main() {
 
     Camera camera = Camera(vec3(0.0f, -5.0f, -10.0f), vec3(0.0f, 0.0f, -1.0f), 45.0f, 3.0f, 100.0f);
 
-    World world = World(0, 16, 1, 8);
+    World world = World(0, 200, 1, 8);
     std::vector<std::vector<float>> chunk = world.generateChunk(0, 0);
 
     float deltaTime = 0.0f;
@@ -74,8 +74,14 @@ int main() {
         int viewLoc = glGetUniformLocation(shader.ID, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_TRUE, view.m);
 
-        int ourColorLocation = glGetUniformLocation(shader.ID, "ourColor");
-        glUniform4f(ourColorLocation, 0.0f, 1.0f, 0.0f, 1.0f);
+        int objectColorLocation = glGetUniformLocation(shader.ID, "objectColor");
+        glUniform3f(objectColorLocation, 0.0f, 1.0f, 0.0f);
+
+        int lightPosLocation = glGetUniformLocation(shader.ID, "lightPos");
+        glUniform3f(lightPosLocation, 500.0f, 70.0f, 100.0f);
+
+        int lightColorLocation = glGetUniformLocation(shader.ID, "lightColor");
+        glUniform3f(lightColorLocation, 1.0f, 1.0f, 1.0f);
 
         world.drawChunk(chunk, shader);
 

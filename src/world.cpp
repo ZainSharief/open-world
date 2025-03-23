@@ -114,7 +114,7 @@ void World::drawChunk(std::vector<std::vector<float>> chunk, Shader& shader)
     int x_width = chunk.size();
     int z_width = chunk[0].size();
 
-    float vertices[x_width * z_width * 3];
+    float vertices[x_width * z_width * 6];
     int indices[(x_width-1) * (z_width-1) * 6];
 
     int index_pos = 0;
@@ -122,11 +122,15 @@ void World::drawChunk(std::vector<std::vector<float>> chunk, Shader& shader)
     for (int x = 0; x < x_width; x++) {
         for (int z = 0; z < z_width; z++) {
             
-            int pos = 3 * (x * z_width + z);
+            int pos = 6 * (x * z_width + z);
 
             vertices[pos] = x;
             vertices[pos+1] = chunk[x][z];
             vertices[pos+2] = z; 
+
+            vertices[pos+3] = 0.0f;
+            vertices[pos+4] = 0.0f;
+            vertices[pos+5] = 0.0f;
 
             if (x < x_width - 1 && z < z_width - 1) {
                 
@@ -139,9 +143,57 @@ void World::drawChunk(std::vector<std::vector<float>> chunk, Shader& shader)
                 indices[index_pos+5] = x * z_width + z + 1;
 
                 index_pos += 6;
-            }
+            } 
         }
-    }       
+    }   
+    
+    for (int x = 0; x < x_width; x++) {
+        for (int z = 0; z < z_width; z++) {
+
+            if (x >= x_width - 1 || z >= z_width - 1) {
+                continue;
+            }
+            
+            int top_left_pos = 6 * (x * z_width + z);
+            int top_right_pos = 6 * (x * z_width + (z+1));
+            int bottom_left_pos = 6 * ((x+1) * z_width + z);
+            int bottom_right_pos = 6 * ((x+1) * z_width + (z+1));
+
+            vec3 top_left = vec3(vertices[top_left_pos], vertices[top_left_pos + 1], vertices[top_left_pos + 2]);
+            vec3 top_right = vec3(vertices[top_right_pos], vertices[top_right_pos + 1], vertices[top_right_pos + 2]);
+            vec3 bottom_left = vec3(vertices[bottom_left_pos], vertices[bottom_left_pos + 1], vertices[bottom_left_pos + 2]);
+            vec3 bottom_right = vec3(vertices[bottom_right_pos], vertices[bottom_right_pos + 1], vertices[bottom_right_pos + 2]);
+
+            vec3 top_triangle_normal = (top_right - top_left).cross(bottom_left - top_left).normalize();
+            vec3 bottom_triangle_normal = (bottom_left - bottom_right).cross(top_right - bottom_right).normalize();
+
+            vertices[top_left_pos + 3] += top_triangle_normal.x;
+            vertices[top_left_pos + 4] += top_triangle_normal.y;
+            vertices[top_left_pos + 5] += top_triangle_normal.z;
+
+            vertices[top_right_pos + 3] += top_triangle_normal.x + bottom_triangle_normal.x;
+            vertices[top_right_pos + 4] += top_triangle_normal.y + bottom_triangle_normal.y;
+            vertices[top_right_pos + 5] += top_triangle_normal.z + bottom_triangle_normal.z;
+            
+            vertices[bottom_left_pos + 3] += top_triangle_normal.x + bottom_triangle_normal.x;
+            vertices[bottom_left_pos + 4] += top_triangle_normal.y + bottom_triangle_normal.y;
+            vertices[bottom_left_pos + 5] += top_triangle_normal.z + bottom_triangle_normal.z;
+
+            vertices[bottom_right_pos + 3] += bottom_triangle_normal.x;
+            vertices[bottom_right_pos + 4] += bottom_triangle_normal.y;
+            vertices[bottom_right_pos + 5] += bottom_triangle_normal.z;
+        }
+    }
+
+    for (int x = 0; x < x_width; x++) {
+        for (int z = 0; z < z_width; z++) {
+            int pos = 6 * (x * z_width + z);
+            vec3 normal = vec3(vertices[pos+3], vertices[pos+4], vertices[pos+5]).normalize();
+            vertices[pos+3] = normal.x;
+            vertices[pos+4] = normal.y;
+            vertices[pos+5] = normal.z;
+        }
+    }
 
     unsigned int VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -156,11 +208,13 @@ void World::drawChunk(std::vector<std::vector<float>> chunk, Shader& shader)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    shader.use();
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
+    shader.use();
     mat4 model = mat4::translate(vec3(0.0f, 0.0f, 0.0f));
     int modelLoc = glGetUniformLocation(shader.ID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_TRUE, model.m);
