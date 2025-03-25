@@ -1,5 +1,8 @@
 #include "object.h"
 #include "maths/maths.h"
+#include "vertex.h"
+
+#include <unordered_map>
 
 Object::Object(Shader shader, const char* modelPath)
     :shader(shader), VAO(0)
@@ -52,7 +55,8 @@ void Object::loadObject(const char* modelPath, std::vector<float> &verticies, st
     std::vector<float> vertexTexCoordArray;
     std::vector<float> vertexNormArray;
 
-    int shapes = 0;
+    std::unordered_map<vertex, unsigned int> vertexMap;
+    int startIndex = 0;
 
     std::string line;
     while (std::getline(file, line)) {
@@ -106,19 +110,32 @@ void Object::loadObject(const char* modelPath, std::vector<float> &verticies, st
             
             for (int i = 0; i < 3; i++) 
             {
+                vertex vert = vertex(
+                    vertexArray[(vertexIndices[i] - 1) * 3],       vertexArray[(vertexIndices[i] - 1) * 3 + 1],        vertexArray[(vertexIndices[i] - 1) * 3 + 2],
+                    vertexTexCoordArray[(textIndices[i] - 1) * 2], vertexTexCoordArray[(textIndices[i] - 1) * 2 + 1],
+                    vertexNormArray[(normIndices[i] - 1) * 3],     vertexNormArray[(normIndices[i] - 1) * 3 + 1],      vertexNormArray[(normIndices[i] - 1) * 3 + 2]
+                );
+
+                if (vertexMap.find(vert) != vertexMap.end()) {
+                    indices.push_back(vertexMap[vert]);
+                    continue;
+                }
+
+                vertexMap[vert] = startIndex++;
+
                 // ** CHANGE 6->8 WHEN TEXTURE COORDS ARE ADDED **
                 int pos = verticies.size() / 6;
-                verticies.push_back(vertexArray[(vertexIndices[i] - 1) * 3]);
-                verticies.push_back(vertexArray[(vertexIndices[i] - 1) * 3 + 1]);
-                verticies.push_back(vertexArray[(vertexIndices[i] - 1) * 3 + 2]);
+                verticies.push_back(vert.x);
+                verticies.push_back(vert.y);
+                verticies.push_back(vert.z);
 
                 // ** UNCOMMENT WHEN TEXTURE COORDS ARE ADDED **
-                //verticies.push_back(vertexTexCoordArray[(textIndices[i] - 1) * 3]);
-                //verticies.push_back(vertexTexCoordArray[(textIndices[i] - 1) * 3 + 1]);
+                //verticies.push_back(vert.u);
+                //verticies.push_back(vert.v);
 
-                verticies.push_back(vertexNormArray[(normIndices[i] - 1) * 3]);
-                verticies.push_back(vertexNormArray[(normIndices[i] - 1) * 3 + 1]);
-                verticies.push_back(vertexNormArray[(normIndices[i] - 1) * 3 + 2]);
+                verticies.push_back(vert.nx);
+                verticies.push_back(vert.ny);
+                verticies.push_back(vert.nz);
 
                 indices.push_back(pos);
             }
