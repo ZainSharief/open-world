@@ -5,6 +5,9 @@ build
 *.exe
 open-world
 
+# Model & object files
+models
+
 # MacOS binary files
 .DS_Store
 

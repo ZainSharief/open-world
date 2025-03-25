@@ -6,6 +6,7 @@
 #include "dependencies/stb_image.h"
 #include "maths/maths.h"
 
+#include "object.h"
 #include "camera.h"
 #include "world.h"
 
@@ -52,9 +53,11 @@ int main() {
     int projectionLoc = glGetUniformLocation(shader.ID, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_TRUE, projection.m);
 
-    Camera camera = Camera(vec3(0.0f, -5.0f, -10.0f), vec3(0.0f, 0.0f, -1.0f), 45.0f, 3.0f, 100.0f);
+    Object tree = Object(shader, "models/trees/trees9.obj");
 
-    World world = World(0, 200, 1, 8);
+    Camera camera = Camera(vec3(0.0f, -5.0f, -10.0f), vec3(0.0f, 0.0f, -1.0f), 45.0f, 10.0f, 100.0f);
+
+    World world = World(0, 200, 2, 32);
     std::vector<std::vector<float>> chunk = world.generateChunk(0, 0);
 
     float deltaTime = 0.0f;
@@ -84,6 +87,7 @@ int main() {
         glUniform3f(lightColorLocation, 1.0f, 1.0f, 1.0f);
 
         world.drawChunk(chunk, shader);
+        tree.drawObject();
 
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {

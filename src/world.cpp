@@ -25,16 +25,17 @@ std::vector<std::vector<float>> World::generateChunk(int chunk_x, int chunk_y)
         }
     }
 
-    for (int y = 0; y < blockSize * chunkSize; y++) {
+    for (int y = 0; y < blockSize * chunkSize; y++) {   
         for (int x = 0; x < blockSize * chunkSize; x++) {
 
             float amplitude = 1.0f;
-            float frequency = 1.0f;
+            float frequency = 0.3f;
 
             for (int o = 0; o < octaves; o++){
+                float amplitude = pow(0.5f, o);
+                float frequency = pow(2.0f, o);
 
-                // Normalises the point so chunk x starts at x 
-                vec2 point_norm = vec2(x, y) / (blockSize * frequency);
+                vec2 point_norm = vec2(x, y) * 0.05f;
 
                 // Finds surrounding chunk borders
                 int x0 = (int) point_norm.x;
@@ -54,19 +55,10 @@ std::vector<std::vector<float>> World::generateChunk(int chunk_x, int chunk_y)
                     point_norm.x - x0
                 );
 
-                // Cubic interpolation vertically
-                float value = interpolate(ix0, ix1, point_norm.y - y0);
-
-                map[x][y] += (value * amplitude);
-
-                // Reduces the amplitude + increases the frequency for the next octave
-                amplitude /= 2;
-                frequency *= 2;
+                map[x][y] += amplitude * interpolate(ix0, ix1, point_norm.y - y0);
             }
 
-            // Clamps the value between -1 and 1
-            if (map[x][y] > 1.0f) map[x][y] = 1.0f;
-            else if (map[x][y] < -1.0f) map[x][y] = -1.0f;
+            map[x][y] *= 3.0f;
         }
     }
 
@@ -109,7 +101,7 @@ vec2 World::randomGradient(int ix, int iy)
 
 void World::drawChunk(std::vector<std::vector<float>> chunk, Shader& shader) 
 {
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
 
     int x_width = chunk.size();
     int z_width = chunk[0].size();
@@ -219,7 +211,7 @@ void World::drawChunk(std::vector<std::vector<float>> chunk, Shader& shader)
     int modelLoc = glGetUniformLocation(shader.ID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_TRUE, model.m);
 
-    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0);
     
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &VAO);
