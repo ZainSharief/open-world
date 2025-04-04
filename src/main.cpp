@@ -45,15 +45,22 @@ int main() {
     framebuffer_size_callback(window, width, height);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Shader shader("src/shaders/vertexShader.glsl", "src/shaders/fragmentShader.glsl");
+    Shader Worldshader("src/shaders/worldVertexShader.glsl", "src/shaders/worldFragmentShader.glsl");
 
     shader.use();
-    mat4 projection = mat4::projection(45.0f, (float)width / (float)height, 0.1f, 100.0f);
+    mat4 projection = mat4::projection(45.0f, (float)width / (float)height, 0.1f, 10000.0f);
     int projectionLoc = glGetUniformLocation(shader.ID, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_TRUE, projection.m);
 
-    Object tree = Object(shader, "models/trees/trees9.obj");
+    Worldshader.use();
+    projectionLoc = glGetUniformLocation(Worldshader.ID, "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_TRUE, projection.m);
+
+    Object tree = Object(shader, "models/Tree1/Tree1.obj");
 
     Camera camera = Camera(vec3(0.0f, -5.0f, -10.0f), vec3(0.0f, 0.0f, -1.0f), 45.0f, 10.0f, 100.0f);
 
@@ -70,23 +77,27 @@ int main() {
 
         glClearColor(0.38, 0.58, 0.98, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        shader.use();
         
         mat4 view = camera.getView();
+        shader.use();
         int viewLoc = glGetUniformLocation(shader.ID, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_TRUE, view.m);
-
-        int objectColorLocation = glGetUniformLocation(shader.ID, "objectColor");
-        glUniform3f(objectColorLocation, 0.0f, 1.0f, 0.0f);
-
         int lightPosLocation = glGetUniformLocation(shader.ID, "lightPos");
         glUniform3f(lightPosLocation, 500.0f, 70.0f, 100.0f);
-
         int lightColorLocation = glGetUniformLocation(shader.ID, "lightColor");
         glUniform3f(lightColorLocation, 1.0f, 1.0f, 1.0f);
+        
+        Worldshader.use();
+        viewLoc = glGetUniformLocation(Worldshader.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_TRUE, view.m);
+        int objectColorLocation = glGetUniformLocation(Worldshader.ID, "objectColor");
+        glUniform3f(objectColorLocation, 0.0f, 1.0f, 0.0f);
+        lightPosLocation = glGetUniformLocation(Worldshader.ID, "lightPos");
+        glUniform3f(lightPosLocation, 500.0f, 70.0f, 100.0f);
+        lightColorLocation = glGetUniformLocation(Worldshader.ID, "lightColor");
+        glUniform3f(lightColorLocation, 1.0f, 1.0f, 1.0f);
 
-        world.drawChunk(chunk, shader);
+        world.drawChunk(chunk, Worldshader);
         tree.drawObject();
 
         GLenum err;
@@ -102,6 +113,7 @@ int main() {
     }
 
     shader.deleteShader();
+    Worldshader.deleteShader();
 
     glfwTerminate();
     return 0;

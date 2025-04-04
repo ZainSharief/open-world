@@ -15,6 +15,7 @@ class Object
         void drawObject();
 
         unsigned int VAO;
+        unsigned int texture = -1;
         Shader shader;
         int numVertices = -1;
 

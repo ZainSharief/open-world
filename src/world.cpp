@@ -101,8 +101,6 @@ vec2 World::randomGradient(int ix, int iy)
 
 void World::drawChunk(std::vector<std::vector<float>> chunk, Shader& shader) 
 {
-    //glEnable(GL_DEPTH_TEST);
-
     int x_width = chunk.size();
     int z_width = chunk[0].size();
 
